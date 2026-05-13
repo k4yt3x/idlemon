@@ -16,6 +16,14 @@ The same gap affects any other application that depends on the Mutter idle monit
 
 ## Installation
 
+Arch Linux users can install the [`idlemon`](https://aur.archlinux.org/packages/idlemon) package from the AUR:
+
+```bash
+yay -S idlemon
+```
+
+Otherwise, build and install from source with cargo:
+
 ```bash
 cargo install --locked --git https://github.com/k4yt3x/idlemon.git
 ```
