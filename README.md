@@ -4,6 +4,8 @@ A lightweight Mutter `IdleMonitor` D-Bus shim for X11.
 
 idlemon implements the subset of the `org.gnome.Mutter.IdleMonitor` D-Bus interface that desktop applications rely on for idle detection, backed by the X11 MIT-SCREEN-SAVER extension. It exists so that applications built for GNOME, for example 1Password's auto lock, work correctly on standalone window managers such as i3, bspwm, awesome, or dwm.
 
+<img width="1496" height="923" alt="screenshot" src="https://github.com/user-attachments/assets/3fe992dc-6487-421f-b0c7-1dc24fbcb4a4" />
+
 ## Background
 
 1Password for Linux uses `org.gnome.Mutter.IdleMonitor` to power its "lock after the computer has been idle for N minutes" feature. The service is normally provided by Mutter, the GNOME compositor, and is therefore available on GNOME and any environment that re-exports it. On a standalone window manager such as i3 it is missing entirely, and 1Password responds with:
