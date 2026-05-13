@@ -1,0 +1,83 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "*"
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: "Build profile"
+        required: true
+        default: "release"
+        type: choice
+        options:
+          - release
+          - debug
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact: idlemon-linux-amd64
+
+    runs-on: ${{ matrix.os }}
+
+    env:
+      BUILD_PROFILE: ${{ (startsWith(github.ref, 'refs/tags/') || inputs.profile == 'release') && 'release' || 'debug' }}
+      CARGO_FLAGS: ${{ (startsWith(github.ref, 'refs/tags/') || inputs.profile == 'release') && '--release' || '' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Build
+        run: cargo build ${{ env.CARGO_FLAGS }} --target ${{ matrix.target }}
+
+      - name: Package artifact
+        run: |
+          mkdir -p staging
+          cp target/${{ matrix.target }}/${{ env.BUILD_PROFILE }}/idlemon staging/
+          cp README.md CHANGELOG.md staging/
+          tar -czf ${{ matrix.artifact }}.tar.gz -C staging .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}.tar.gz
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          draft: true
+          files: artifacts/*
